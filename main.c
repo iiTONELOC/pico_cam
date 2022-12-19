@@ -1,100 +1,46 @@
 #include "pico/stdlib.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include "arducam/arducam.h"
+#include "lib/echoLocation/echo_location.h"
+#include "lib/picoCam/pico_cam.h"
 
-uint8_t image_buf[320 * 240];
+// on-board LED pin (NON-WIFI PICO)
+const uint LED_PIN = 25;
 
-struct arducam_config config;
-
-const uint led_pin = 25;
-const uint btn_pin = 0;
-
-int button_val = 0;
-bool current_button_state = false;
-
-void takePicture()
+void main()
 {
-	printf("Taking picture\r\n");
-	arducam_capture_frame(&config);
-
-	printf("img- ");
-	for (int i = 0; i < 320 * 240; i++)
-	{
-		printf("%d ", config.image_buf[i]);
-	}
-	printf("\r\n");
-}
-
-void initCamera()
-{
-	config.sccb = i2c0;
-	config.sccb_mode = I2C_MODE_16_8;
-	config.sensor_address = 0x24;
-	config.pin_sioc = PIN_CAM_SIOC;
-	config.pin_siod = PIN_CAM_SIOD;
-	config.pin_resetb = PIN_CAM_RESETB;
-	config.pin_xclk = PIN_CAM_XCLK;
-	config.pin_vsync = PIN_CAM_VSYNC;
-	config.pin_y2_pio_base = PIN_CAM_Y2_PIO_BASE;
-
-	config.pio = pio0;
-	config.pio_sm = 0;
-
-	config.dma_channel = 0;
-	config.image_buf = image_buf;
-	config.image_buf_size = sizeof(image_buf);
-
-	arducam_init(&config);
-}
-
-void handleButtonPress()
-{
-	if (button_val == 0)
-	{
-		// button was presses change the state of the LED
-		current_button_state = !current_button_state;
-		// set the LED to the new state
-		gpio_put(led_pin, current_button_state);
-
-		takePicture();
-	}
-	else
-	{
-		// do nothing
-	}
-}
-
-int main()
-{
-	// Initialize LED pin
-	gpio_init(led_pin);
-	gpio_set_dir(led_pin, GPIO_OUT);
-
-	// Initialize button pin
-	gpio_init(btn_pin);
-	gpio_set_dir(btn_pin, GPIO_IN);
-
-	// Initialize chosen serial port
+	// Initialize port for printf output
 	stdio_init_all();
 
+	// Initialize the on-board LED pin
+	gpio_init(LED_PIN);
+	gpio_set_dir(LED_PIN, GPIO_OUT);
+
+	// Initialize echo location sensor
+	init_echo_location();
+
 	// Initialize Arducam
-	initCamera();
+	// initCamera();
 
 	// Loop forever
 	while (true)
 	{
-		// Read button
-		button_val = gpio_get(btn_pin);
+		// check the distance of objects in front of the sensor
+		echo_distance = check_distance();
 
-		printf("Button value: %d\r\n", button_val);
-
-		// print the state of the button
-		printf("Button state: %d\r\n", current_button_state);
-
-		// CONTROL THE LED BASED ON THE BUTTON PRESS
-		handleButtonPress();
-
-		sleep_ms(250);
+		// If the distance is out of range, blink the LED
+		// roughly 2inches to 12inches
+		if (echo_distance < 6 || echo_distance > 30) // cm
+		{
+			// Blink LED
+			gpio_put(LED_PIN, 1);
+			sleep_ms(500);
+			gpio_put(LED_PIN, 0);
+			sleep_ms(500);
+		}
+		else
+		{
+			printf("Distance: %f cm\r\n", echo_distance);
+		}
 	}
 }

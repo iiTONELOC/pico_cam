@@ -10,7 +10,9 @@ project(pico_cam)
 pico_sdk_init()
 
 add_executable(${PROJECT_NAME}
-	arducam/arducam.c
+	lib/echoLocation/echo_location.c
+	lib/picoCam/pico_cam.c
+	lib/arducam/arducam.c
 	main.c
 )
 
