@@ -12,7 +12,7 @@ enum i2c_mode
 	I2C_MODE_8_8 = 1,
 };
 
-struct senosr_reg
+struct sensor_reg
 {
 	uint16_t reg;
 	uint8_t val;
@@ -48,5 +48,5 @@ void arducam_init(struct arducam_config *config);
 void arducam_capture_frame(struct arducam_config *config);
 void arducam_reg_write(struct arducam_config *config, uint16_t reg, uint8_t value);
 uint8_t arducam_reg_read(struct arducam_config *config, uint16_t reg);
-void arducam_regs_write(struct arducam_config *config, struct senosr_reg *regs_list);
+void arducam_regs_write(struct arducam_config *config, struct sensor_reg *regs_list);
 #endif

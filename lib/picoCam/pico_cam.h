@@ -5,9 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-extern uint8_t image_buf[320 * 240];
-
-void picoCam_init();
-void picoCam_capture();
+void pico_cam_init();
+struct arducam_config *pico_cam_capture();
 
 #endif

@@ -261,16 +261,25 @@ void arducam_capture_frame(struct arducam_config *config)
 		&config->pio->rxf[config->pio_sm],
 		config->image_buf_size,
 		false);
+
+	printf("PRE VSYNC LOOP\r\n");
 	// Wait for vsync rising edge to start frame
 	while (gpio_get(config->pin_vsync) == true)
 		;
 	while (gpio_get(config->pin_vsync) == false)
 		;
 
+	printf("POST VSYNC LOOP\r\n");
+
 	dma_channel_start(config->dma_channel);
+
+	printf("POST DMA START\r\n");
 	pio_sm_set_enabled(config->pio, config->pio_sm, true);
+	printf("POST PIO ENABLE\r\n");
 	dma_channel_wait_for_finish_blocking(config->dma_channel);
+	printf("POST DMA WAIT\r\n");
 	pio_sm_set_enabled(config->pio, config->pio_sm, false);
+	printf("POST PIO DISABLE\r\n");
 }
 
 void arducam_reg_write(struct arducam_config *config, uint16_t reg, uint8_t value)
@@ -322,7 +331,7 @@ uint8_t arducam_reg_read(struct arducam_config *config, uint16_t reg)
 	return value;
 }
 
-void arducam_regs_write(struct arducam_config *config, struct senosr_reg *regs_list)
+void arducam_regs_write(struct arducam_config *config, struct sensor_reg *regs_list)
 {
 	while (1)
 	{
